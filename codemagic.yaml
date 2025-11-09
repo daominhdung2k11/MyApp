@@ -7,20 +7,7 @@ workflows:
         ANDROID_HOME: $ANDROID_SDK_ROOT
         GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx1024m
     scripts:
-      - name: Set permissions
-        script: chmod +x gradlew
-      - name: Download Gradle wrapper
-        script: |
-          mkdir -p gradle/wrapper
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            cd /tmp
-            curl -L https://services.gradle.org/distributions/gradle-8.1-bin.zip -o gradle.zip
-            unzip -q gradle.zip
-            cp gradle-8.1/lib/gradle-wrapper.jar $OLDPWD/gradle/wrapper/
-            rm -rf gradle-8.1 gradle.zip
-            cd $OLDPWD
-          fi
       - name: Build APK
-        script: ./gradlew assembleDebug --stacktrace --no-daemon
+        script: gradle assembleDebug --stacktrace --no-daemon -Dorg.gradle.jvmargs=-Xmx1024m
     artifacts:
       - app/build/outputs/apk/**/*.apk

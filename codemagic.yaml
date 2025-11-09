@@ -1,13 +1,28 @@
 workflows:
   android-workflow:
     name: Build Android
+    instance_type: linux
+    max_build_duration: 60
     environment:
+      android_sdk: 34
       vars:
-        ANDROID_HOME: /opt/android-sdk
+        ANDROID_HOME: $ANDROID_SDK_ROOT
+    cache:
+      cache_paths:
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
     scripts:
       - name: Set permission
         script: chmod +x gradlew
       - name: Build APK
-        script: ./gradlew assembleDebug
+        script: ./gradlew assembleDebug --stacktrace
     artifacts:
-      - app/build/outputs/**/*.apk
+      - app/build/outputs/apk/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - $MAILGUN_NOTIFY_EMAIL
+        subject: 'Build: $FLUTTER_BUILD_NAME+$FLUTTER_BUILD_NUMBER'
+        notify:
+          success: true
+          failure: true

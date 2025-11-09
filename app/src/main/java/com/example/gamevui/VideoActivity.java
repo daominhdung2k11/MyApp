@@ -2,13 +2,15 @@ package com.example.gamevui;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
 
 public class VideoActivity extends AppCompatActivity {
 
@@ -31,24 +33,44 @@ public class VideoActivity extends AppCompatActivity {
 
     private void playVideo() {
         try {
-            // Lấy video từ raw folder
-            Uri videoUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.skibidiyesyes);
-            videoView.setVideoURI(videoUri);
+            File videoFile = new File(getExternalFilesDir(null), "skibidiyesyes.mp4");
             
-            // Tắt media controller để không thể dừng video
-            videoView.setMediaController(null);
+            if (!videoFile.exists()) {
+                videoFile = new File(getFilesDir(), "skibidiyesyes.mp4");
+            }
 
-            videoView.setOnPreparedListener(mp -> {
-                mediaPlayer = mp;
-                mediaPlayer.setLooping(true); // Lặp lại video
-                videoView.start();
-            });
+            if (videoFile.exists()) {
+                videoView.setVideoPath(videoFile.getAbsolutePath());
+                
+                // Tắt media controller để không thể dừng video
+                MediaController mediaController = new MediaController(this) {
+                    @Override
+                    public void setAnchorView(android.view.View view) {
+                        // Override để ẩn control
+                    }
 
-            videoView.setOnErrorListener((mp, what, extra) -> {
-                Toast.makeText(VideoActivity.this, "Lỗi phát video", Toast.LENGTH_SHORT).show();
-                return true;
-            });
+                    @Override
+                    public void show(int timeout) {
+                        // Không hiển thị control
+                    }
+                };
 
+                videoView.setMediaController(null);
+
+                videoView.setOnPreparedListener(mp -> {
+                    mediaPlayer = mp;
+                    mediaPlayer.setLooping(true); // Lặp lại video
+                    videoView.start();
+                });
+
+                videoView.setOnErrorListener((mp, what, extra) -> {
+                    Toast.makeText(VideoActivity.this, "Lỗi phát video", Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+
+            } else {
+                Toast.makeText(this, "Không tìm thấy video", Toast.LENGTH_SHORT).show();
+            }
         } catch (Exception e) {
             Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }

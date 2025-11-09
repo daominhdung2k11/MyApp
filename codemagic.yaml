@@ -1,18 +1,23 @@
 workflows:
   android-workflow:
     name: Build Android
-    max_build_duration: 60
+    max_build_duration: 120
     environment:
       vars:
         ANDROID_HOME: $ANDROID_SDK_ROOT
-    cache:
-      cache_paths:
-        - ~/.gradle/caches
-        - ~/.gradle/wrapper
+        GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx1024m
     scripts:
-      - name: Set permission
+      - name: Set permissions
         script: chmod +x gradlew
+      - name: Download Gradle wrapper
+        script: |
+          mkdir -p gradle/wrapper
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            cd gradle/wrapper
+            curl -L https://github.com/gradle/gradle/releases/download/v8.1.0/gradle-8.1-wrapper.jar -o gradle-wrapper.jar
+            cd ../..
+          fi
       - name: Build APK
-        script: ./gradlew assembleDebug --stacktrace
+        script: ./gradlew assembleDebug --stacktrace --no-daemon
     artifacts:
       - app/build/outputs/apk/**/*.apk
